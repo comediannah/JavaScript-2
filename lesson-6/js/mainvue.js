@@ -8,10 +8,10 @@ const app = new Vue({
         img: 'https://via.placeholder.com/200x150',
         cartImg: 'https://via.placeholder.com/50x100',
         products: [],
-        userSearch: '',
         filtered: [],
         cart: [],
-        showCart: false
+        showCart: false,
+        errorFlag: false
     },
     methods: {
         getJson(url) {
@@ -21,19 +21,19 @@ const app = new Vue({
                     console.log(error);
                 })
         },
-        onInput() {
-            if (this.userSearch === '') {
-                this.filtered = this.products;
+        buy(product) {
+            let item = this.cart.find(element => element.id_product === product.id_product);
+            if (item) {
+                item.quantity++;
             } else {
-                this.filtered = this.products.filter(product => new RegExp(this.userSearch, 'i').test(product.product_name));
+                this.cart.push(Object.assign({ quantity: 1 }, product));
             }
         },
-        buy(product) {
-            let item = cart.find(element => element.product_id === id);
-            if (item) {
-                cart.push(Object.assign({ quantity: 1 }, product));
+        remove(product) {
+            if (product.quantity > 1) {
+                product.quantity--;
             } else {
-                item.quantity++;
+                this.cart.splice(this.cart.indexOf(product), 1);
             }
         }
     },
@@ -44,12 +44,14 @@ const app = new Vue({
                     this.products.push(el);
                 }
                 this.filtered = this.products;
-            });
+            })
+            .catch(error => { this.errorFlag = true; });
         this.getJson(API + this.basketUrl)
             .then(data => {
                 for (let el of data.contents) {
                     this.cart.push(el);
                 }
-            });
+            })
+            .catch(error => { this.errorFlag = true; });
     }
 });
